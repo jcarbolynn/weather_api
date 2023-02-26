@@ -1,0 +1,84 @@
+import requests
+import json
+import math
+from twilio.rest import Client
+import os
+
+weather_params = {
+  'latitude': 37.63,
+  'longitude': -77.46,
+  'timezone': 'EST',
+  # 'hourly': {'temperature_2m', 'precipitation'},
+  # https://api.open-meteo.com/v1/forecast?latitude=37.63&longitude=-77.46&hourly=temperature_2m&temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York
+  # 'daily_units': {'weathercode', 'precipitation_hours', 'uv_index_max'},
+  'daily': {'weathercode', 'precipitation_hours', 'uv_index_max'},
+  # https://api.open-meteo.com/v1/forecast?latitude=37.63&longitude=-77.46&daily=weathercode,uv_index_max,precipitation_hours&temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York
+}
+
+om_endpoint = "https://api.open-meteo.com/v1/forecast"
+
+response = requests.get(om_endpoint, params=weather_params)
+# response= requests.get(url="https://api.open-meteo.com/v1/forecast?latitude=37.55&longitude=-77.46&hourly=temperature_2m")
+
+# if problem and do not get the data raise an exception
+# print(response.status_code)
+response.raise_for_status()
+
+
+weather_data = response.json()
+formatted_weather_data = json.dumps(weather_data, indent=2)
+# print(formatted_weather_data)
+
+# print(formatted_weather_data)
+
+# print(weather_data['daily']['time'][0])
+# print(weather_data['daily']['uv_index_max'])
+
+# # to get first 6 days from daily forecast
+# for _ in range(6):
+#   print(weather_data['daily']['uv_index_max'][_])
+
+# use slice
+# print(weather_data['daily']['uv_index_max'][:5])
+
+will_rain = False
+too_sunny = False
+
+for code in weather_data['daily']['weathercode']:
+  digits = int(math.log10(code))
+  first_digit = int(code / pow(10, digits))
+
+  if first_digit < 7:
+    will_rain = True
+
+for uv in weather_data['daily']['uv_index_max']:
+  if uv > 3:
+    too_sunny = True
+
+# twilio stuff! https://www.twilio.com/docs/sms/quickstart/python
+
+# https://stackoverflow.com/questions/64962165/twilio-raise-keyerrorkey-from-none
+# dindt work with the environment variables? what does the environment do
+# account_sid = os.environ['AC7a66bde688656d5be24ca0177c9c8e38']
+# auth_token = os.environ['0e282e1cd1d70070c617fd8fa5d5bbc2']
+account_sid = 'AC7a66bde688656d5be24ca0177c9c8e38'
+auth_token = '0e282e1cd1d70070c617fd8fa5d5bbc2'
+
+if will_rain:
+  client = Client(account_sid, auth_token)
+  message = client.messages \
+                  .create(
+                    body= "It's going to rain this week. Bring an umbrella",
+                    from_= "+18445791012",
+                    to= "+18505444561",
+                  )
+  print(message.status)
+  
+if too_sunny:
+  print("Wear sunscreen")
+
+# for _ in range(len(weather_data['daily']['uv_index_max'])):
+#   if (weather_data['daily']['uv_index_max'][_] > 3):
+#     print(weather_data['daily']['uv_index_max'][_])
+#     print("Wear sunscreen")
+
