@@ -61,8 +61,12 @@ for uv in weather_data['daily']['uv_index_max']:
 # dindt work with the environment variables? what does the environment do
 # account_sid = os.environ['AC7a66bde688656d5be24ca0177c9c8e38']
 # auth_token = os.environ['0e282e1cd1d70070c617fd8fa5d5bbc2']
-account_sid = 'AC7a66bde688656d5be24ca0177c9c8e38'
-auth_token = '0e282e1cd1d70070c617fd8fa5d5bbc2'
+
+# account_sid = 'AC7a66bde688656d5be24ca0177c9c8e38'
+# auth_token = '0e282e1cd1d70070c617fd8fa5d5bbc2'
+
+account_sid = os.environ.get("account_sid")
+auth_token = os.environ.get("auth_token")
 
 if will_rain:
   client = Client(account_sid, auth_token)
@@ -70,10 +74,10 @@ if will_rain:
                   .create(
                     body= "It's going to rain this week. Bring an umbrella",
                     from_= "+18445791012",
-                    to= "+18505444561",
+                    to= "+17034728112",
                   )
   print(message.status)
-  
+
 if too_sunny:
   print("Wear sunscreen")
 
